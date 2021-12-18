@@ -1,7 +1,4 @@
-# A very simple Flask Hello World app for you to get started with...
-
 from flask import Flask, request, jsonify
-import requests
 from DBTemp import DBTemp
 
 
@@ -15,12 +12,12 @@ my_header = {
     'Content-Type': 'application/json'
     }
 
-@app.route('/')
-def hello_world():
+@app.route('/api/home/', methods=['GET'])
+def home():
     return jsonify(readings.select_all_readings())
 
 
-@app.route('/<int:readingid>', methods=['GET'])
+@app.route('/api/home/<int:readingid>', methods=['GET'])
 def get_by_id(readingid):
 
     my_get_by = readings.select_reading(readingid)
@@ -28,14 +25,22 @@ def get_by_id(readingid):
     return jsonify(my_get_by)
 
 
-@app.route('/delete/<int:readingid>', methods=['GET','DELETE'])
+@app.route('/api/home/<path:duration>/<int:number>', methods=['GET'])
+def last_specified(duration, number):
+
+    between = readings.between_dates(duration, number)
+
+    return jsonify(between)
+
+
+@app.route('/api/home/delete/<int:readingid>', methods=['GET','DELETE'])
 def delete_by_id(readingid):
     readings.delete_reading(readingid)
     return jsonify(readings.select_all_readings())
 
 
-@app.route('/create/', methods=['POST'])
+@app.route('/api/home/create/', methods=['POST'])
 def create_reading():
     content = request.get_json()
-    readings.insert_reading(content['Humidity'], content['Celsius'], content['Fahrenheit'], content['Time'])
+    readings.insert_reading(content['rasp_id'], content['reading_time'], content['sensor_value'], content['type_id'], content['unit_id'])
     return request.get_json()
